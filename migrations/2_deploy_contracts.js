@@ -27,17 +27,27 @@ function getRootNodeFromTLD(tld) {
 async function deployRegistrar(deployer, tld) {
   var rootNode = getRootNodeFromTLD(tld);
   // Deploy the ENS first
-  await deployer.deploy(ENS);
-  // Deploy base registrar and bind with ENS
-  await deployer.deploy(BaseRegistrar, ENS.address, rootNode.namehash);
-  // Deploy price oracle for ethregistrar
-  await deployer.deploy(DummyOracle, 1);
-  await deployer.deploy(PriceOracle, DummyOracle.address, [1,2,3,4,5]);
-  // Deploy the ETHRegistrar and bind with Base Registrar
-  await deployer.deploy(ETHRegistrar, BaseRegistrar, Math.pow(10*20), Math.pow(10*25));
-  // Transfer the owner of the `rootNode` to the ETHRegistrar
-  return ENS.at(ENS.address).then((registry) =>
-    registry.setSubnodeOwner('0x0', rootNode.sha3, ETHRegistrar.address));
+  return deployer.deploy(ENS)
+    // Deploy base registrar for tld and bind with ENS
+    .then(() => deployer.deploy(BaseRegistrar, ENS.address, rootNode.namehash))
+    // Deploy price oracle for tld registrar
+    .then(() => deployer.deploy(DummyOracle, 1))
+    .then(() => deployer.deploy(PriceOracle, DummyOracle.address, [1,2,3,4,5]))
+    // Deploy the tld Registrar and bind with Base Registrar
+    .then(() => deployer.deploy(
+      ETHRegistrar,
+      BaseRegistrar.address,
+      PriceOracle.address,
+      Math.pow(10, 10),
+      Math.pow(10, 15)
+    ))
+    // Transfer the owner of the `rootNode` to the ETHRegistrar
+    .then(() => ENS.at(ENS.address))
+    .then((registry) => registry.setSubnodeOwner(
+      '0x0',
+      rootNode.sha3,
+      ETHRegistrar.address
+    ));
 }
 
 
@@ -45,5 +55,4 @@ module.exports = function(deployer, network) {
   var tld = 'badass';
 
   deployRegistrar(deployer, tld);
-
 };

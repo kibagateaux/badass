@@ -5,6 +5,7 @@
   "scripts": {
     "test": "truffle test",
     "lint": "solium --dir ./contracts",
+    "deploy-local": "rm -rf ./build && truffle migrate --network dev",
     "deploy": "truffle migrate",
     "prepublishOnly": "truffle compile && truffle networks --clean",
     "pub": "npm run prepublishOnly && npm publish"

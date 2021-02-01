@@ -1,15 +1,10 @@
 module.exports = {
   networks: {
-    'dev.fifs': {
+    'dev': {
       host: "localhost",
       port: 8545,
       network_id: "*" // Match any network id
     },
-    'dev.auction': {
-      host: "localhost",
-      port: 8545,
-      network_id: "*" // Match any network id
-    }
   },
   compilers: {
     solc: {
