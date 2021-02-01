@@ -20,7 +20,7 @@ contracts.forEach(function ([ENS, lang]) {
             let addr = '0x0000000000000000000000000000000000001234';
 
             let result = await ens.setOwner('0x0', addr, {from: accounts[0]});
-
+            
             assert.equal(await ens.owner('0x0'), addr)
 
             assert.equal(result.logs.length, 1);

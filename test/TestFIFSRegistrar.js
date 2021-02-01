@@ -1,5 +1,5 @@
-const FIFSRegistrar = artifacts.require('FIFSRegistrar.sol');
-const ENS = artifacts.require('ENSRegistry.sol');
+const FIFSRegistrar = artifacts.require('@ensdomains/ens/FIFSRegistrar.sol');
+const ENS = artifacts.require('@ensdomains/ens/ENSRegistry.sol');
 
 const { exceptions } = require('@ensdomains/test-utils');
 const sha3 = require('web3-utils').sha3;

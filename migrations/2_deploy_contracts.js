@@ -1,5 +1,8 @@
-const ENS = artifacts.require("./ENSRegistry.sol");
-const ETHRegistrar = artifacts.require('./ETHRegistrarController.sol');
+const ENS = artifacts.require("@ensdomains/ens/ENSRegistry");
+const ETHRegistrar = artifacts.require('@ensdomains/ethregistrar/ETHRegistrarController');
+const BaseRegistrar = artifacts.require('@ensdomains/ethregistrar/BaseRegistrarImplementation');
+const PriceOracle = artifacts.require('@ensdomains/ethregistrar/StablePriceOracle');
+const DummyOracle = artifacts.require('@ensdomains/ethregistrar/DummyOracle');
 const web3 = new (require('web3'))();
 const namehash = require('eth-ens-namehash');
 
@@ -10,7 +13,7 @@ const namehash = require('eth-ens-namehash');
  */
 function getRootNodeFromTLD(tld) {
   return {
-    namehash: namehash(tld),
+    namehash: namehash.hash(tld),
     sha3: web3.sha3(tld)
   };
 }
@@ -21,19 +24,20 @@ function getRootNodeFromTLD(tld) {
  * @param {Object} deployer truffle deployer helper
  * @param {string} tld tld which the ETH registrar takes charge of
  */
-function deployRegistrar(deployer, tld) {
+async function deployRegistrar(deployer, tld) {
   var rootNode = getRootNodeFromTLD(tld);
-
   // Deploy the ENS first
-  deployer.deploy(ENS)
-    .then(() => {
-      // Deploy the ETHRegistrar and bind it with ENS
-      return deployer.deploy(ETHRegistrar, ENS.address, rootNode.namehash);
-    })
-    .then(function() {
-      // Transfer the owner of the `rootNode` to the ETHRegistrar
-      return ENS.at(ENS.address).then((c) => c.setSubnodeOwner('0x0', rootNode.sha3, ETHRegistrar.address));
-    });
+  await deployer.deploy(ENS);
+  // Deploy base registrar and bind with ENS
+  await deployer.deploy(BaseRegistrar, ENS.address, rootNode.namehash);
+  // Deploy price oracle for ethregistrar
+  await deployer.deploy(DummyOracle, 1);
+  await deployer.deploy(PriceOracle, DummyOracle.address, [1,2,3,4,5]);
+  // Deploy the ETHRegistrar and bind with Base Registrar
+  await deployer.deploy(ETHRegistrar, BaseRegistrar, Math.pow(10*20), Math.pow(10*25));
+  // Transfer the owner of the `rootNode` to the ETHRegistrar
+  return ENS.at(ENS.address).then((registry) =>
+    registry.setSubnodeOwner('0x0', rootNode.sha3, ETHRegistrar.address));
 }
 
 
